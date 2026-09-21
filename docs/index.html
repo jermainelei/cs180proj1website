@@ -154,12 +154,16 @@
   <main>
     <section>
       <h2>Approach</h2>
-      <p>I split each glass plate into its blue, green, and red channels. I aligned green and red to blue using NCC. For small images, I used an exhaustive search. For larger images, I used a coarse-to-fine image pyramid. I ignored the outer borders while scoring. I also used image gradients when the channel brightness values were very different. Finally, I combined the channels and applied automatic cropping, contrast adjustment, and white balance.</p>
+      <p>Each input is one tall grayscale plate. The top, middle, and bottom thirds are the blue, green, and red exposures. I trim the height to a multiple of three and split the plate into those channels. Blue stays fixed as the reference. I shift green and red to match it. The offsets are written as <code>(x, y)</code>. Positive <code>x</code> moves a channel right, and positive <code>y</code> moves it down.</p>
+      <p>I score each possible shift with normalized cross-correlation, or NCC. First, I subtract the mean from both image regions. I then normalize them and take their dot product. A higher score means the two regions match more closely. I only compare pixels that overlap after the shift. I also ignore 12% around each side. This keeps dark borders, scanner marks, and damaged edges from controlling the score.</p>
+      <p>For the small JPEGs, I test every horizontal and vertical shift from <code>-15</code> to <code>15</code> pixels. This is fast enough at low resolution. The TIFF files are much larger, so I use an image pyramid. I shrink each level by averaging 2x2 pixel blocks. I search a larger area at the smallest level. I then double that estimate and refine it within four pixels at each larger level.</p>
+      <p>Raw pixel values did not work as well on every plate. Different filters can make the same object look much brighter or darker. This is especially noticeable in Emir. For the final pyramid results, I compute gradient magnitude from horizontal and vertical differences. I run NCC on those edge images instead. After alignment, I combine the channels into RGB. I also apply automatic cropping, contrast adjustment, and gray-world white balance.</p>
     </section>
 
     <section>
       <h2>Single-Scale Results</h2>
       <p>I first tested the single-scale search on the three small JPEGs. I used raw pixel values and NCC. The search window was <code>[-15, 15]</code> pixels.</p>
+      <p>For every possible shift, I compared the overlapping part of the moving channel with blue. I selected the shift with the highest NCC score. All three JPEGs aligned without needing the pyramid.</p>
       <div class="grid">
         <div class="result-card">
           <img src="assets/single_scale/cathedral.jpg" alt="Colorized cathedral">
@@ -179,6 +183,7 @@
     <section>
       <h2>Multi-Scale Pyramid Results</h2>
       <p>I then ran the pyramid version on every provided image. This version used edge-based NCC. I checked each output and did not find an obvious alignment failure.</p>
+      <p>The smallest pyramid level gives a rough offset. Each finer level starts from twice the previous offset. It only searches a small area around that estimate. This keeps the search fast while still allowing large shifts in the original TIFF files.</p>
       <figure>
         <img src="assets/provided_processed_contact_sheet.jpg" alt="Contact sheet of colorized provided images">
         <figcaption>All provided images after alignment and the automatic color and border adjustments described below.</figcaption>
