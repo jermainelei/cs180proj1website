@@ -147,22 +147,19 @@
   <header>
     <main>
       <h1>Images of the Russian Empire</h1>
-      <p class="lede">For this project, I took Prokudin-Gorskii's glass plate negatives and turned them into color images by separating and aligning the three exposures.</p>
+      <p class="lede">For this project, I turned Prokudin-Gorskii's glass plate negatives into color images. I did this by separating and aligning the three exposures.</p>
     </main>
   </header>
 
   <main>
     <section>
       <h2>Approach</h2>
-      <p>Each plate is one tall grayscale image containing three exposures. From top to bottom, they are blue, green, and red. I split the plate into thirds and use the blue channel as the reference, then search for the shifts that line up the green and red channels with it. I report each shift as <code>(x, y)</code>, with positive <code>x</code> moving right and positive <code>y</code> moving down.</p>
-      <p>To compare two possible alignments, I use normalized cross-correlation (NCC). I only score pixels in the region where both shifted images overlap. I also leave out 12% around the outside because the plate borders have dark strips, scanner marks, and other details that do not belong to the actual scene.</p>
-      <p>For the smaller JPEGs, I can simply try every shift in a <code>[-15, 15]</code> pixel window. That would be too slow for the large TIFF files, so I use an image pyramid. I repeatedly shrink the image with 2x2 averaging, find an approximate shift at the smallest level, and refine it as I move back up. On my computer, most of the full-size images took about eight seconds.</p>
-      <p>Emir was harder because the brightness changes a lot between color channels. For the final version, I aligned gradient magnitudes instead of the original pixel values. The colors may have different brightness, but the edges of clothing, buildings, and other objects still tend to appear in the same places.</p>
+      <p>I split each glass plate into its blue, green, and red channels. I aligned green and red to blue using NCC. For small images, I used an exhaustive search. For larger images, I used a coarse-to-fine image pyramid. I ignored the outer borders while scoring. I also used image gradients when the channel brightness values were very different. Finally, I combined the channels and applied automatic cropping, contrast adjustment, and white balance.</p>
     </section>
 
     <section>
       <h2>Single-Scale Results</h2>
-      <p>I first tested the basic single-scale search on the three small JPEGs. These results use raw pixel values, NCC, and a <code>[-15, 15]</code> search window.</p>
+      <p>I first tested the single-scale search on the three small JPEGs. I used raw pixel values and NCC. The search window was <code>[-15, 15]</code> pixels.</p>
       <div class="grid">
         <div class="result-card">
           <img src="assets/single_scale/cathedral.jpg" alt="Colorized cathedral">
@@ -181,7 +178,7 @@
 
     <section>
       <h2>Multi-Scale Pyramid Results</h2>
-      <p>I then ran the pyramid version with edge-based NCC on all of the provided images. After checking the outputs, I did not find any image with an obvious alignment failure.</p>
+      <p>I then ran the pyramid version on every provided image. This version used edge-based NCC. I checked each output and did not find an obvious alignment failure.</p>
       <figure>
         <img src="assets/provided_processed_contact_sheet.jpg" alt="Contact sheet of colorized provided images">
         <figcaption>All provided images after alignment and the automatic color and border adjustments described below.</figcaption>
@@ -189,23 +186,23 @@
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Image</th><th>G offset</th><th>R offset</th><th>Time</th></tr>
+            <tr><th>Image</th><th>G offset</th><th>R offset</th></tr>
           </thead>
           <tbody>
-            <tr><td>cathedral.jpg</td><td>(2, 5)</td><td>(3, 12)</td><td>0.38s</td></tr>
-            <tr><td>church.tif</td><td>(4, 25)</td><td>(-4, 58)</td><td>8.26s</td></tr>
-            <tr><td>emir.tif</td><td>(24, 49)</td><td>(40, 107)</td><td>8.72s</td></tr>
-            <tr><td>harvesters.tif</td><td>(17, 60)</td><td>(14, 124)</td><td>8.13s</td></tr>
-            <tr><td>icon.tif</td><td>(17, 42)</td><td>(23, 90)</td><td>8.69s</td></tr>
-            <tr><td>ilemselga.tif</td><td>(7, 40)</td><td>(11, 131)</td><td>8.35s</td></tr>
-            <tr><td>melons.tif</td><td>(10, 80)</td><td>(11, 172)</td><td>8.64s</td></tr>
-            <tr><td>monastery.jpg</td><td>(2, -3)</td><td>(2, 3)</td><td>0.42s</td></tr>
-            <tr><td>religous_painting.tif</td><td>(6, 30)</td><td>(6, 70)</td><td>8.33s</td></tr>
-            <tr><td>self_portrait.tif</td><td>(29, 78)</td><td>(35, 172)</td><td>8.89s</td></tr>
-            <tr><td>siren.tif</td><td>(-6, 49)</td><td>(-24, 96)</td><td>8.92s</td></tr>
-            <tr><td>three_generations.tif</td><td>(12, 54)</td><td>(9, 111)</td><td>8.91s</td></tr>
-            <tr><td>tobolsk.jpg</td><td>(3, 3)</td><td>(3, 6)</td><td>0.36s</td></tr>
-            <tr><td>wharf.tif</td><td>(-7, 15)</td><td>(-16, 83)</td><td>8.73s</td></tr>
+            <tr><td>cathedral.jpg</td><td>(2, 5)</td><td>(3, 12)</td></tr>
+            <tr><td>church.tif</td><td>(4, 25)</td><td>(-4, 58)</td></tr>
+            <tr><td>emir.tif</td><td>(24, 49)</td><td>(40, 107)</td></tr>
+            <tr><td>harvesters.tif</td><td>(17, 60)</td><td>(14, 124)</td></tr>
+            <tr><td>icon.tif</td><td>(17, 42)</td><td>(23, 90)</td></tr>
+            <tr><td>ilemselga.tif</td><td>(7, 40)</td><td>(11, 131)</td></tr>
+            <tr><td>melons.tif</td><td>(10, 80)</td><td>(11, 172)</td></tr>
+            <tr><td>monastery.jpg</td><td>(2, -3)</td><td>(2, 3)</td></tr>
+            <tr><td>religous_painting.tif</td><td>(6, 30)</td><td>(6, 70)</td></tr>
+            <tr><td>self_portrait.tif</td><td>(29, 78)</td><td>(35, 172)</td></tr>
+            <tr><td>siren.tif</td><td>(-6, 49)</td><td>(-24, 96)</td></tr>
+            <tr><td>three_generations.tif</td><td>(12, 54)</td><td>(9, 111)</td></tr>
+            <tr><td>tobolsk.jpg</td><td>(3, 3)</td><td>(3, 6)</td></tr>
+            <tr><td>wharf.tif</td><td>(-7, 15)</td><td>(-16, 83)</td></tr>
           </tbody>
         </table>
       </div>
@@ -213,7 +210,7 @@
 
     <section>
       <h2>Additional LOC Examples</h2>
-      <p>I also chose three more glass plate scans from the Library of Congress collection and ran them through the same pyramid alignment. I used the original stacked negatives rather than already colorized versions.</p>
+      <p>I chose three more glass plate scans from the Library of Congress collection. I ran them through the same pyramid alignment. I used the original stacked negatives, not colorized versions.</p>
       <figure>
         <img src="assets/extra_contact_sheet.jpg" alt="Contact sheet of three additional Library of Congress examples">
         <figcaption>My three additional examples: Chapan-Ata, Iset valley, and In Italy.</figcaption>
@@ -235,10 +232,10 @@
     <section>
       <h2>Bells And Whistles</h2>
       <h3>Edge-Based Alignment</h3>
-      <p>Raw NCC assumes that matching objects have similar brightness in both channels, which is not always true. I computed a simple gradient magnitude using horizontal and vertical differences, then ran the same NCC search on those edge images. This worked especially well on Emir, where the blue and red exposures look very different.</p>
+      <p>Raw NCC works best when matching objects have similar brightness. That is not always true across color channels. I computed gradient magnitude from horizontal and vertical differences. I then ran the same NCC search on the edge images. This helped with Emir because its blue and red exposures look very different.</p>
 
       <h3>Automatic Enhancement</h3>
-      <p>After aligning the channels, I remove areas that became empty because of the shifts. I also look near the outside of the image for borders with strong color disagreement or nearly black and white values. Finally, I stretch the contrast using percentiles and apply gray-world white balance. I kept the cropping conservative because cutting off part of the photograph looked worse than leaving a little of the original border.</p>
+      <p>After alignment, I remove areas that became empty because of the shifts. I also check the outside of the image for unusual borders. These borders often have strong color disagreement or nearly black and white values. I stretch the contrast using percentiles and apply gray-world white balance. The cropping is conservative so it does not remove important parts of the photograph.</p>
 
       <div class="grid">
         <div class="result-card">
@@ -259,7 +256,7 @@
     <section>
       <h2>Failure Notes</h2>
       <div class="callout">
-        <p>I did not see a clear alignment failure in the final pyramid results. A few images still have colored edges, stains, or pieces of the original plate border. Those problems mostly come from the scans and my conservative cropping rather than from the channels being shifted incorrectly.</p>
+        <p>I did not see a clear alignment failure in the final pyramid results. Some images still have colored edges or stains. A few also keep parts of the original plate border. These problems mostly come from the scans and conservative cropping. They do not appear to come from incorrect channel shifts.</p>
       </div>
     </section>
   </main>
